@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organigrama</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-org-chart@2.6.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-flextree@2.1.2/build/d3-flextree.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: #f9f8f5;
+            overflow: hidden;
+        }
+
+        .imagen-corner {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 400px;
+            height: 70px;
+            object-fit: cover;
+        }
+        .imagen-bottom-right {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 4%;
+            height: auto;
+            object-fit: cover;
+        }
+
+        .imagen-next-to-bottom {
+            position: absolute;
+            bottom: 0;
+            right: 6%;
+            width: 4%;
+            height: auto;
+            object-fit: cover;
+        }
+        .imagen-next-to-next {
+            position: absolute;
+            bottom: 0;
+            right: 12%;
+            width: 4%;
+            height: auto;
+            object-fit: cover;
+        }
+
+        .imagen-next-to-next5 {
+            position: absolute;
+            bottom: 0;
+            right: 17%;
+            width: 6%;
+            height: auto;
+            object-fit: cover;
+        }
+
+        .imagen-next-to-next6 {
+            position: absolute;
+            bottom: 0;
+            right: 25%;
+            width: 4%;
+            height: auto;
+            object-fit: cover;
+        }
+
+        .title-container {
+            text-align: center;
+            font-size: 15px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        .filters-container {
+            padding: 10px;
+            background-color: #f9f8f5;
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 300px;
+            height: 93vh;
+            overflow-y: auto;
+            border: 2px solid black;
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            transition: transform 0.3s ease-in-out;
+            z-index: 1;
+        }
+
+        .filters-container.hidden {
+            transform: translateX(-100%);
+        }
+
+        .chart-container {
+            margin-left: 0;
+            width: 100vw;
+            height: 90vh;
+            background-color: #f9f8f5;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            height: 140px;
+            border-radius: 5px;
+            border: 1px solid #000;
+        }
+
+        .filter-toggle {
+            position: absolute;
+            top: 20px;
+            left: 300px;
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+            z-index: 2;
+        }
+
+        .filter-toggle:hover {
+            background-color: #555;
+        }
+
+        .bottom-container {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 80px; /* Ajusta la altura según necesites */
+    background-color: #f9f8f5; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-top: 2px solid black; 
+    border-top: 2px solid black; /* Borde superior */
+    box-shadow: 0px -4px 10px rgba(0, 0, 0, 0.2); /* Sombra leve */
+
+}
+        .chart-container svg .link {
+    stroke: #050505 !important; /* Cambia el color de las líneas de conexión */
+    stroke-width: 3px !important; /* Ajusta el grosor */
+}
+
+        .bottom-container img {
+        margin: 0 10px; 
+        height: 80px; /* Ajusta la altura de las imágenes */
+        width: auto;
+}
+
+    </style>
+</head>
+<body>
+
+    <div class="title-container">
+        <h1>Organigrama</h1>
+    
+    <img src="Cos.png" alt="Imagen" class="imagen-corner">
+    </div>
+
+    <div class="bottom-container">
+    <img src="Business.png" alt="Segundo Logo" class="imagen-bottom-right">
+    <img src="Data.png" alt="Tercer Logo" class="imagen-next-to-bottom">
+    <img src="Big Data.png" alt="Cuarto Logo" class="imagen-next-to-next">
+    <img src="workforce.png" alt="Quinto Logo" class="imagen-next-to-next5">
+    <img src="Logo.png" alt="Sexto Logo" class="imagen-next-to-next6">
+    </div>
+
+    <!-- Botón de filtro fuera del contenedor -->
+    <button class="filter-toggle">
+        <i class="fas fa-filter"></i>
+    </button>
+
+    <!-- Contenedor de filtros -->
+    <div class="filters-container hidden">
+
+        <label for="campaignFilter">Campaña:</label>
+        <input type="text" id="searchCampaign" placeholder="Buscar campaña" />
+        <select id="campaignFilter" multiple></select>
+
+        <label for="positionFilter">Cargo:</label>
+        <input type="text" id="searchPosition" placeholder="Buscar cargo" />
+        <select id="positionFilter" multiple></select>
+
+        <label for="countryFilter">País:</label>
+        <input type="text" id="searchCountry" placeholder="Buscar país" />
+        <select id="countryFilter" multiple></select>
+
+        <label for="hierarchyFilter">Jerarquía:</label>
+        <input type="text" id="searchHierarchy" placeholder="Buscar jerarquía" />
+        <select id="hierarchyFilter" multiple></select>
+
+        <label for="companyFilter">Empresa:</label>
+        <input type="text" id="searchCompany" placeholder="Buscar empresa" />
+        <select id="companyFilter" multiple></select>
+    </div>
+
+    <!-- Contenedor del organigrama -->
+    <div class="chart-container"></div>
+
+    <script>
+        var chart, allData;
+
+        d3.text('https://raw.githubusercontent.com/Jsanabrial/test/main/organigrama.csv').then((rawData) => {
+            allData = d3.dsvFormat(";").parse(rawData);
+
+            if (!allData.length) {
+                console.error("No se encontraron datos.");
+                return;
+            }
+
+            function filterSelectOptions(searchId, filterId, key) {
+    const searchValue = document.getElementById(searchId).value.toLowerCase();
+    const selectElement = document.getElementById(filterId);
+    const options = selectElement.querySelectorAll('option');
+
+    options.forEach(option => {
+        const isMatch = option.textContent.toLowerCase().includes(searchValue);
+        option.style.display = isMatch ? "block" : "none";
+    });
+}
+
+// Añadir eventos de búsqueda para cada filtro
+document.getElementById("searchCampaign").addEventListener("input", () => {
+    filterSelectOptions("searchCampaign", "campaignFilter", "Campana");
+});
+document.getElementById("searchPosition").addEventListener("input", () => {
+    filterSelectOptions("searchPosition", "positionFilter", "positionName");
+});
+document.getElementById("searchCountry").addEventListener("input", () => {
+    filterSelectOptions("searchCountry", "countryFilter", "Pais");
+});
+document.getElementById("searchHierarchy").addEventListener("input", () => {
+    filterSelectOptions("searchHierarchy", "hierarchyFilter", "segmento_jerarquia");
+});
+document.getElementById("searchCompany").addEventListener("input", () => {
+    filterSelectOptions("searchCompany", "companyFilter", "Empresa");
+});
+            // Función para llenar los filtros
+            function populateFilter(filterId, key) {
+                const values = [...new Set(allData.map(d => d[key]))].sort();
+                const filterSelect = document.getElementById(filterId);
+
+                values.forEach(value => {
+                    const option = document.createElement("option");
+                    option.value = value;
+                    option.textContent = value;
+                    filterSelect.appendChild(option);
+                });
+            }
+
+            // Llenar los filtros
+            populateFilter("campaignFilter", "Campana");
+            populateFilter("positionFilter", "positionName");
+            populateFilter("countryFilter", "Pais");
+            populateFilter("hierarchyFilter", "segmento_jerarquia");
+            populateFilter("companyFilter", "Empresa");
+
+            // Renderizar organigrama inicial
+            renderChart(allData);
+
+            // Evento para aplicar filtros
+            document.querySelectorAll("select").forEach(select => {
+                select.addEventListener("change", applyFilters);
+            });
+        });
+
+        function applyFilters() {
+    const selectedCampaigns = getSelectedValues("campaignFilter");
+    const selectedPositions = getSelectedValues("positionFilter");
+    const selectedCountries = getSelectedValues("countryFilter");
+    const selectedHierarchies = getSelectedValues("hierarchyFilter");
+    const selectedCompanies = getSelectedValues("companyFilter");
+
+    // Filtrar datos con base en selecciones
+    let filteredData = allData.filter(d =>
+        (selectedCampaigns.length === 0 || selectedCampaigns.includes(d.Campana)) &&
+        (selectedPositions.length === 0 || selectedPositions.includes(d.positionName)) &&
+        (selectedCountries.length === 0 || selectedCountries.includes(d.Pais)) &&
+        (selectedHierarchies.length === 0 || selectedHierarchies.includes(d.segmento_jerarquia)) &&
+        (selectedCompanies.length === 0 || selectedCompanies.includes(d.Empresa))
+    );
+
+    // **Actualizar los filtros restantes**
+    updateFilterOptions("campaignFilter", filteredData, "Campana", selectedCampaigns);
+    updateFilterOptions("positionFilter", filteredData, "positionName", selectedPositions);
+    updateFilterOptions("countryFilter", filteredData, "Pais", selectedCountries);
+    updateFilterOptions("hierarchyFilter", filteredData, "segmento_jerarquia", selectedHierarchies);
+    updateFilterOptions("companyFilter", filteredData, "Empresa", selectedCompanies);
+
+    // Renderizar organigrama con los datos filtrados
+    renderChart(filteredData);
+}
+
+// **Función para actualizar los filtros dinámicamente**
+function updateFilterOptions(filterId, data, key, selectedValues) {
+    const filterSelect = document.getElementById(filterId);
+    filterSelect.innerHTML = ""; // Limpiar opciones
+
+    // Obtener valores únicos disponibles en los datos filtrados
+    const uniqueValues = [...new Set(data.map(d => d[key]))].sort();
+
+    // Crear nuevas opciones basadas en los datos filtrados
+    uniqueValues.forEach(value => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        if (selectedValues.includes(value)) {
+            option.selected = true; // Mantener selección
+        }
+        filterSelect.appendChild(option);
+    });
+}
+
+
+        function getSelectedValues(filterId) {
+            return Array.from(document.getElementById(filterId).selectedOptions).map(opt => opt.value);
+        }
+
+        function renderChart(data) {
+            document.querySelector(".chart-container").innerHTML = ""; // Limpiar antes de renderizar
+
+            let totalRegistros = data.length;
+            let updatedData = JSON.parse(JSON.stringify(data));
+            let ceoLatam = updatedData.find(d => d.positionName === "CEO LATAM");
+            let coo = updatedData.find(d => d.positionName === "COO");
+
+            if (ceoLatam) {
+                ceoLatam.totalRegistros = totalRegistros.toLocaleString("en-US").replace(/,/g, ".");
+            }
+            if (coo) {
+                coo.totalRegistros = (totalRegistros - 1).toLocaleString("en-US").replace(/,/g, ".");
+            }
+
+            chart = new d3.OrgChart()
+    .container('.chart-container')
+    .data(updatedData)
+    .nodeHeight(() => Math.max(94, window.innerHeight / 9))
+    .nodeWidth(() => Math.max(350, window.innerWidth / 5))
+    .childrenMargin(() => 40)
+    .compactMarginBetween(() => 30)
+    .compactMarginPair(() => 25)
+    .neightbourMargin(() => 25)
+    .scaleExtent([0.5, 2])
+    .onNodeClick((d) => {
+        chart.setExpanded(d, !d._expanded).render().fit();
+    })
+    .buttonContent(({ node }) => {
+        return `<div style="border-radius:3px;padding:3px;font-size:12px;margin:auto auto;background-color:lightgray"> 
+            <span style="font-size:11px">
+                ${node.children ? `<i class="fas fa-chevron-up"></i>` : `<i class="fas fa-chevron-down"></i>`}
+            </span> 
+            ${node.data._directSubordinates}  
+        </div>`;
+    })
+    .nodeContent((d) => {
+        const colors = ['#C70039', '#050505', '#050505', '#C70039'];
+        const color = colors[d.depth % colors.length];
+
+        const borderStyle = d._expanded ? "5px solid #aab7b8" : "3px solid #d9e211";
+
+        return ` 
+        <div style="background-color:${color}; 
+                    position:absolute;
+                    margin-top:-1px; 
+                    margin-left:-1px;
+                    width:${d.width}px;
+                    height:${d.height + 20}px;
+                    border-radius:10px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    text-align: center;
+                    border: ${borderStyle};">
+            
+            <!-- Imagen alineada a la izquierda -->
+            <img src="${d.data.imageUrl}" 
+                 style="border-radius: 50%;
+                        width: 80px;
+                        height: 80px;
+                        position: absolute;
+                        left: 10px;
+                        top: 50%;
+                        transform: translateY(-50%);" 
+                 alt="Profile Picture"/>
+
+            <div style="width: 100%;">
+                <div style="color:#ffffff;
+                            font-size:${d.depth < 2 ? 20 : 16}px;
+                            font-weight:bold;
+                            word-wrap: break-word;
+                            padding-left: 80px;"> 
+                    ${d.data.name}
+                </div>
+
+                <div style="color:#ffffff;
+                            font-size:${d.depth < 2 ? 16 : 14}px;
+                            margin-top:5px;
+                            word-wrap: break-word;
+                            padding-left: 80px;"> 
+                    ${d.data.positionName}
+                </div>
+
+                ${d.data.positionName === "CEO LATAM" || d.data.positionName === "COO" ? ` 
+                <div style="color:#ffffff;
+                            font-size:14px;
+                            margin-top:5px;
+                            padding-left: 80px;"> 
+                    Personal: ${d.data.totalRegistros} 
+                </div>` : ""}
+            </div>
+        </div>`;
+    })
+    .render()
+    .fit();
+
+d3.selectAll(".link").style("stroke", "#FF5733").style("stroke-width", "2px");
+
+
+        }
+
+        // Evento para alternar la visibilidad de los filtros
+        document.querySelector(".filter-toggle").addEventListener("click", () => {
+            const filtersContainer = document.querySelector(".filters-container");
+            filtersContainer.classList.toggle("hidden");
+        });
+
+        window.addEventListener("resize", () => {
+            if (chart) {
+                chart.fit();
+            }
+        });
+    </script>
+</body>
+</html>
